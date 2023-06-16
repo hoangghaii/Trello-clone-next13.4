@@ -55,6 +55,7 @@ export const useBoardStore = create<Props>((set, get) => ({
       {
         title: todo.title,
         status: columnId,
+        ...(todo.image && { image: JSON.stringify(todo.image) }),
       }
     );
   },

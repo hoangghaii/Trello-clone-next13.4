@@ -8,6 +8,7 @@ import {
 
 import { getUrl } from '@/actions';
 import ImageModal from '@/components/modals/ImageModal';
+import UpdateTaskModal from '@/components/modals/UpdateTaskModal';
 import { useBoardStore } from '@/hooks';
 import { Todo, TypedColumn } from '@/types';
 
@@ -28,7 +29,9 @@ const TodoCard: FC<Props> = ({
   draggableProps,
   draggableHandleProps,
 }: Props) => {
-  const [isOpenModal, setIsOpenModal] = useState<boolean>(false);
+  const [isOpenImageModal, setIsOpenImageModal] = useState<boolean>(false);
+
+  const [isOpenUpdateModal, setIsOpenUpdateModal] = useState<boolean>(false);
 
   const [deleteTask] = useBoardStore((state) => [state.deleteTask]);
 
@@ -51,9 +54,15 @@ const TodoCard: FC<Props> = ({
   return (
     <>
       <ImageModal
-        isOpen={isOpenModal}
-        onClose={() => setIsOpenModal(false)}
+        isOpen={isOpenImageModal}
+        onClose={() => setIsOpenImageModal(false)}
         image={imageUrl}
+      />
+
+      <UpdateTaskModal
+        isOpen={isOpenUpdateModal}
+        onClose={() => setIsOpenUpdateModal(false)}
+        todo={todo}
       />
 
       <div
@@ -62,8 +71,11 @@ const TodoCard: FC<Props> = ({
         {...draggableHandleProps}
         ref={innerRef}
       >
-        <div className="flex justify-between items-center p-5">
-          <p>{todo.title}</p>
+        <div
+          className="flex justify-between items-center p-5"
+          onClick={() => setIsOpenUpdateModal(true)}
+        >
+          <p className="cursor-default">{todo.title}</p>
           <button
             className="text-red-500 hover:text-red-600"
             onClick={() => deleteTask(index, todo, id)}
@@ -80,7 +92,7 @@ const TodoCard: FC<Props> = ({
               alt="Task Image"
               className="object-cover rounded-b-md cursor-pointer transition ease-in-out duration-200 hover:scale-125"
               priority
-              onClick={() => setIsOpenModal(true)}
+              onClick={() => setIsOpenImageModal(true)}
             />
           </div>
         )}
