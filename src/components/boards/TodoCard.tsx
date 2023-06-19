@@ -37,6 +37,8 @@ const TodoCard: FC<Props> = ({
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
+  const [todoSelected, setTodoSelected] = useState<Todo | null>(null);
+
   useEffect(() => {
     if (todo.image) {
       const fetchImage = async () => {
@@ -59,11 +61,13 @@ const TodoCard: FC<Props> = ({
         image={imageUrl}
       />
 
-      <UpdateTaskModal
-        isOpen={isOpenUpdateModal}
-        onClose={() => setIsOpenUpdateModal(false)}
-        todo={todo}
-      />
+      {todoSelected && (
+        <UpdateTaskModal
+          isOpen={isOpenUpdateModal}
+          onClose={() => setIsOpenUpdateModal(false)}
+          todo={todoSelected}
+        />
+      )}
 
       <div
         className="bg-white rounded-md space-y-2 drop-shadow-md"
@@ -73,7 +77,10 @@ const TodoCard: FC<Props> = ({
       >
         <div
           className="flex justify-between items-center p-5"
-          onClick={() => setIsOpenUpdateModal(true)}
+          onClick={() => {
+            setTodoSelected(todo);
+            setIsOpenUpdateModal(true);
+          }}
         >
           <p className="cursor-default">{todo.title}</p>
           <button

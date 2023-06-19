@@ -6,9 +6,3 @@ export const getUrl = async (image: Image) => {
 
   return url;
 };
-
-export const getFile = async (image: Image) => {
-  const url = await storage.getFile(image.bucketId, image.fileId);
-
-  return url;
-};

@@ -11,7 +11,11 @@ type Props = {
 
   setBoard: (board: Board) => void;
 
-  updataTodoInDB: (todo: Todo, columnId: TypedColumn) => void;
+  updataTodoInDB: (
+    todo: Todo,
+    columnId: TypedColumn,
+    image?: File | string | null
+  ) => void;
 
   searchString: string;
 
@@ -25,9 +29,9 @@ type Props = {
 
   setNewTaskType: (columnId: TypedColumn) => void;
 
-  image: File | null;
+  image: string | File | null;
 
-  setImage: (image: File | null) => void;
+  setImage: (image: string | File | null) => void;
 
   addTask: (todo: string, columnId: TypedColumn, images?: File | null) => void;
 
@@ -47,7 +51,20 @@ export const useBoardStore = create<Props>((set, get) => ({
 
   setBoard: (board) => set({ board }),
 
-  updataTodoInDB: async (todo, columnId) => {
+  updataTodoInDB: async (todo, columnId, image) => {
+    let file: Image | undefined;
+
+    if (image && typeof image !== 'string') {
+      const fileUploaded = await uploadImage(image);
+
+      if (fileUploaded) {
+        file = {
+          bucketId: fileUploaded.bucketId,
+          fileId: fileUploaded.$id,
+        };
+      }
+    }
+
     await database.updateDocument(
       process.env.NEXT_PUBLIC_DATABASE_ID!,
       process.env.NEXT_PUBLIC_TODO_COLLECTION_ID!,
@@ -55,7 +72,7 @@ export const useBoardStore = create<Props>((set, get) => ({
       {
         title: todo.title,
         status: columnId,
-        ...(todo.image && { image: JSON.stringify(todo.image) }),
+        ...(file && { image: JSON.stringify(file) }),
       }
     );
   },

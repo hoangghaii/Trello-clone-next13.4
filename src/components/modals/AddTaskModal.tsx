@@ -31,7 +31,7 @@ const AddTaskModal: FC<Props> = ({ isOpen, onClose }: Props) => {
       return;
     }
 
-    addTask(newTaskInput, newTaskType, image);
+    addTask(newTaskInput, newTaskType, image as File);
 
     setImage(null);
 

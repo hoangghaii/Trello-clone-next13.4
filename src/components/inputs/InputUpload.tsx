@@ -17,7 +17,11 @@ const InputUpload: FC = () => {
           <Image
             className="object-cover filter hover:grayscale transition-all duration-150 cursor-not-allowed"
             fill
-            src={URL.createObjectURL(image)}
+            src={
+              typeof image === 'string'
+                ? image
+                : URL.createObjectURL(image as File)
+            }
             alt="Uploaded Image"
             onClick={() => setImage(null)}
           />

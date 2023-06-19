@@ -1,14 +1,15 @@
 'use client';
 
-import { FC, FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { FC, FormEvent, useEffect } from 'react';
 
-import { getFile, getUrl } from '@/actions';
+import { getUrl } from '@/actions';
 import Input from '@/components/inputs/Input';
 import InputUpload from '@/components/inputs/InputUpload';
 import TaskTypeRadioGroup from '@/components/inputs/TaskTypeRadioGroup';
 import Modal from '@/components/modals/Modal';
 import { useBoardStore } from '@/hooks';
-import { Image, Todo } from '@/types';
+import { Image as ImageType, Todo } from '@/types';
 
 type Props = {
   isOpen: boolean;
@@ -35,13 +36,21 @@ const UpdateTaskModal: FC<Props> = ({ isOpen, onClose, todo }: Props) => {
     state.updataTodoInDB,
   ]);
 
-  const getImage = async (image: Image) => {
-    const url = await getFile(image);
-    console.log(url);
+  const router = useRouter();
+
+  console.log(router);
+
+  const getImage = async (image: ImageType) => {
+    const url = await getUrl(image);
+
+    const urlString = url.toString();
+
+    setImage(urlString as string);
   };
 
   useEffect(() => {
     setTaskInput(todo.title);
+
     setNewTaskType(todo.status);
 
     if (todo.image) {
@@ -56,16 +65,17 @@ const UpdateTaskModal: FC<Props> = ({ isOpen, onClose, todo }: Props) => {
       return;
     }
 
-    console.log(newTaskInput, newTaskType, image);
-
     updataTodoInDB(
       { ...todo, title: newTaskInput, status: newTaskType },
-      newTaskType
+      newTaskType,
+      image
     );
 
     setImage(null);
 
     onClose();
+
+    router.refresh();
   };
 
   return (
