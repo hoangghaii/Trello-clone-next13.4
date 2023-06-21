@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { FC, FormEvent, useEffect } from 'react';
 
 import { getUrl } from '@/actions';
@@ -9,16 +8,25 @@ import InputUpload from '@/components/inputs/InputUpload';
 import TaskTypeRadioGroup from '@/components/inputs/TaskTypeRadioGroup';
 import Modal from '@/components/modals/Modal';
 import { useBoardStore } from '@/hooks';
-import { Image as ImageType, Todo } from '@/types';
+import {
+  Board,
+  Column,
+  Image as ImageType,
+  Status,
+  Todo,
+  TypedColumn,
+} from '@/types';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  todo: Todo;
 };
 
-const UpdateTaskModal: FC<Props> = ({ isOpen, onClose, todo }: Props) => {
+const UpdateTaskModal: FC<Props> = ({ isOpen, onClose }: Props) => {
   const [
+    board,
+    setBoard,
+    selectedTask,
     newTaskInput,
     setTaskInput,
     newTaskType,
@@ -27,6 +35,9 @@ const UpdateTaskModal: FC<Props> = ({ isOpen, onClose, todo }: Props) => {
     setImage,
     updataTodoInDB,
   ] = useBoardStore((state) => [
+    state.board,
+    state.setBoard,
+    state.selectedTask,
     state.newTaskInput,
     state.setTaskInput,
     state.newTaskType,
@@ -35,10 +46,6 @@ const UpdateTaskModal: FC<Props> = ({ isOpen, onClose, todo }: Props) => {
     state.setImage,
     state.updataTodoInDB,
   ]);
-
-  const router = useRouter();
-
-  console.log(router);
 
   const getImage = async (image: ImageType) => {
     const url = await getUrl(image);
@@ -49,33 +56,97 @@ const UpdateTaskModal: FC<Props> = ({ isOpen, onClose, todo }: Props) => {
   };
 
   useEffect(() => {
-    setTaskInput(todo.title);
+    if (selectedTask) {
+      setTaskInput(selectedTask.title);
 
-    setNewTaskType(todo.status);
+      setNewTaskType(selectedTask.status);
 
-    if (todo.image) {
-      getImage(todo.image);
+      if (selectedTask.image) {
+        getImage(selectedTask.image);
+      }
     }
-  }, [todo]);
+  }, [selectedTask]);
+
+  const updateBoard = (newTaskType: TypedColumn, todo: Todo) => {
+    if (!selectedTask) {
+      return;
+    }
+
+    const copyBoardColumns: Map<TypedColumn, Column> = new Map(board.columns);
+
+    let copyBoard: Board = { columns: copyBoardColumns };
+
+    const newColumns = new Map(copyBoard.columns);
+
+    const currentTaskTypeColumn = copyBoard.columns.get(
+      selectedTask.status
+    )?.todos;
+
+    if (!currentTaskTypeColumn) {
+      return;
+    }
+
+    const newArr: Todo[] = currentTaskTypeColumn?.filter(
+      (todo) => todo.$id !== selectedTask.$id
+    );
+
+    newColumns.set(selectedTask.status, {
+      id: selectedTask.status,
+      todos: newArr,
+    });
+
+    setBoard({ ...copyBoard, columns: newColumns });
+
+    copyBoard = { columns: newColumns };
+
+    const newTaskTypeColumn = copyBoard.columns.get(newTaskType)?.todos;
+
+    if (!newTaskTypeColumn) {
+      return;
+    }
+
+    newTaskTypeColumn?.push(todo);
+
+    newColumns.set(newTaskType, {
+      id: newTaskType,
+      todos: newTaskTypeColumn,
+    });
+
+    setBoard({ ...copyBoard, columns: newColumns });
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!selectedTask) {
+      return;
+    }
 
     if (!newTaskInput) {
       return;
     }
 
     updataTodoInDB(
-      { ...todo, title: newTaskInput, status: newTaskType },
+      { ...selectedTask, title: newTaskInput, status: newTaskType },
       newTaskType,
       image
     );
 
+    updateBoard(newTaskType, {
+      ...selectedTask,
+      title: newTaskInput,
+      status: newTaskType,
+      ...(image && {
+        image: {
+          bucketId: (image as string).split('/')[6],
+          fileId: (image as string).split('/')[8],
+        },
+      }),
+    });
+
     setImage(null);
 
     onClose();
-
-    router.refresh();
   };
 
   return (

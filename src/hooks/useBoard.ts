@@ -36,6 +36,10 @@ type Props = {
   addTask: (todo: string, columnId: TypedColumn, images?: File | null) => void;
 
   deleteTask: (taskIndex: number, todo: Todo, id: TypedColumn) => void;
+
+  selectedTask: Todo | null;
+
+  setSelectedTask: (todo: Todo | null) => void;
 };
 
 export const useBoardStore = create<Props>((set, get) => ({
@@ -166,4 +170,8 @@ export const useBoardStore = create<Props>((set, get) => ({
       todo.$id
     );
   },
+
+  selectedTask: null,
+
+  setSelectedTask: (todo) => set({ selectedTask: todo }),
 }));

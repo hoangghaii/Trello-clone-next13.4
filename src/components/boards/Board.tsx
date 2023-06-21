@@ -4,6 +4,7 @@ import { FC, useEffect } from 'react';
 import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
 
 import Column from '@/components/boards/Column';
+import LoadingModal from '@/components/modals/LoadingModal';
 import { useBoardStore } from '@/hooks';
 import { Column as ColumnType } from '@/types';
 
@@ -109,6 +110,10 @@ const Board: FC = () => {
       setBoard({ ...board, columns: newColumns });
     }
   };
+
+  if (board.columns.size === 0) {
+    return <LoadingModal />;
+  }
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
